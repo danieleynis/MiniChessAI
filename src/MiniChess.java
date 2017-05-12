@@ -60,7 +60,7 @@ public class MiniChess {
                 if(curPos == '.')
                     continue;
                 if(Character.isUpperCase(curPos)){
-                    wPawns.add(i + "" + j);  // add pawn position in format "rowcol" to hash set
+                    whitePawns.put(i + "" + j, curPos);  // add pawn position in format "rowcol" to hash set
                 }
                 else{
                     blackPawns.put(i + "" + j, curPos);

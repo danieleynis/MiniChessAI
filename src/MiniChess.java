@@ -21,8 +21,8 @@ public class MiniChess {
     private final int rows  = 6;
     private HashSet<String> wPawns = new HashSet<>(); // hash set of all white pawns
     private HashSet<String> bPawns = new HashSet<>(); // hash set of all black pawns
-    private HashMap<String, String> whitePawns = new HashMap<>();
-    private HashMap<String, String> blackPawns = new HashMap<>();
+    private HashMap<String, Character> whitePawns = new HashMap<>();
+    private HashMap<String, Character> blackPawns = new HashMap<>();
 
     MiniChess() {
         Scanner input = new Scanner(System.in);
@@ -51,25 +51,42 @@ public class MiniChess {
         for (int i = 0; i < inputLines.size(); ++i){
             pieceArray = inputLines.get(i).toCharArray();
             assert pieceArray.length == cols;
-
-            for (int j = 0; j < pieceArray.length; ++j){
+            for (int j = 0; j < cols; ++j){
                 char curPos = pieceArray[j];
-                assert curPos == '.' || curPos == 'P' || curPos == 'p';
+                char validPc = Character.toLowerCase(curPos);
+                assert validPc == '.' || validPc == 'p' || validPc == 'k' || validPc == 'q' || validPc == 'b'
+                        || validPc == 'n' || validPc == 'r';
 
                 if(curPos == '.')
                     continue;
-                if(curPos == 'P'){
-                    assert i != 0; // white pawn cannot start on opponent side
+                if(Character.isUpperCase(curPos)){
                     wPawns.add(i + "" + j);  // add pawn position in format "rowcol" to hash set
                 }
                 else{
-                    assert i != rows-1;  // black pawn cannot start on opponent side
-                    bPawns.add(i + "" + j);
+                    blackPawns.put(i + "" + j, curPos);
                 }
             }
         }
-        assert wPawns.size() <= cols;
-        assert bPawns.size() <= cols;
+        assert whitePawns.size() <= cols;
+        assert blackPawns.size() <= cols;
+
+        printBoard();
+    }
+
+    public void printBoard(){
+        char toPrint;
+        for(int i = 0; i < rows; ++i){
+            for(int j = 0; j < cols; ++j){
+                if(whitePawns.containsKey(i + "" + j))
+                    toPrint = whitePawns.get(i + "" + j);
+                else if(blackPawns.containsKey(i + "" + j))
+                    toPrint = blackPawns.get(i + "" + j);
+                else
+                    toPrint = '.';
+                System.out.print(toPrint);
+            }
+            System.out.println();
+        }
     }
 
     public int solveBoard(){

@@ -30,9 +30,10 @@ public class MiniChess {
         int moveNum = input.nextInt();
         assert moveNum >= 0;
 
-        String curTurn = input.nextLine();
+        String curTurn = input.next();
         if(!curTurn.isEmpty())
             currentTurn = curTurn.charAt(0);
+        input.nextLine();
         assert currentTurn == 'W' || currentTurn == 'B';
 
         ArrayList<String> inputLines = new ArrayList<>();  // read in input lines into an array list
@@ -67,8 +68,6 @@ public class MiniChess {
                 }
             }
         }
-        assert whitePawns.size() <= cols;
-        assert blackPawns.size() <= cols;
 
         printBoard();
     }

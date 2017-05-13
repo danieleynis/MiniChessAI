@@ -161,13 +161,41 @@ public class MiniChess {
             int rowTemp = rowPos;
             int colTemp = colPos;
 
+            Character curPc = whitePawns.get(rowPos + "" + colPos);
+            if(curPc == null)
+                curPc = blackPawns.get(rowPos + "" + colPos);
+
+            do{
+                rowTemp += rowToMov;
+                colTemp += colToMove;
+
+                if(rowTemp >= rows || colTemp >= cols || rowTemp < 0 || colTemp < 0)
+                    break;
+
+                Character pc = whitePawns.get(rowTemp + "" + colTemp);
+                if(pc == null)
+                    pc = blackPawns.get(rowTemp + "" + colTemp);
+
+                if(pc != null){
+                    if(Character.isUpperCase(pc) == Character.isUpperCase(curPc) ||
+                            Character.isLowerCase(pc) == Character.isLowerCase(curPc))
+                        break;
+                    if(captureSet == 0)
+                        break;
+                    stopShort = true;
+                }
+                else if(captureSet == 3)
+                    break;
+
+                moves.add(new int[]{rowPos, colPos, rowTemp, colTemp});
+            }while(stopShort);
 
             int temp = colToMove;
             colToMove = - rowToMov;
             rowToMov = temp;
         }
 
-        return null;
+        return moves;
     }
 
 

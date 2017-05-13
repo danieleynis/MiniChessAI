@@ -148,6 +148,22 @@ public class MiniChess {
         for(String pos : onMove.keySet()){  // for each pawn for the side on move
             row = Character.getNumericValue(pos.charAt(0));  // get the pawn exact coordinates
             col = Character.getNumericValue(pos.charAt(1));
+            char pc = onMove.get(pos);
+
+            switch (Character.toLowerCase(pc)){
+                case 'k':
+                    break;
+                case 'q':
+                    break;
+                case 'r':
+                    break;
+                case 'b':
+                    break;
+                case 'n':
+                    break;
+                case 'p':
+                    break;
+            }
         }
         return moves;  // return the list of moves
     }
@@ -197,6 +213,4 @@ public class MiniChess {
 
         return moves;
     }
-
-
 }

@@ -69,6 +69,12 @@ public class MiniChess {
                 }
             }
         }
+
+        printBoard();
+        ArrayList<int[]> movs = generateMoves(whitePawns, blackPawns);
+        for(int[] mov : movs){
+            System.out.println(Arrays.toString(mov));
+        }
     }
 
     public void printBoard(){
@@ -88,11 +94,10 @@ public class MiniChess {
     }
 
     public int solveBoard(){
-        int nValue = solveBoard(wPawns, bPawns);
-        return nValue;
+        return 0;
     }
 
-    private int solveBoard(HashSet<String> wPawns, HashSet<String> bPawns){
+    private int solveBoard(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns){
         return 0;
     }
 
@@ -149,11 +154,13 @@ public class MiniChess {
             row = Character.getNumericValue(pos.charAt(0));  // get the pawn exact coordinates
             col = Character.getNumericValue(pos.charAt(1));
             char pc = onMove.get(pos);
-
+            boolean stopShort = false;
             switch (Character.toLowerCase(pc)){
                 case 'k':
-                    break;
+                    stopShort = true;
                 case 'q':
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, stopShort, 1));
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 1, stopShort, 1));
                     break;
                 case 'r':
                     break;
@@ -173,13 +180,14 @@ public class MiniChess {
                                                     boolean stopShort, int captureSet) {
         ArrayList<int[]> moves = new ArrayList<>();
 
+        Character curPc = wPawns.get(rowPos + "" + colPos);
+        if(curPc == null)
+            curPc = bPawns.get(rowPos + "" + colPos);
+
         for(int i = 0; i < 4; ++i){
             int rowTemp = rowPos;
             int colTemp = colPos;
-
-            Character curPc = whitePawns.get(rowPos + "" + colPos);
-            if(curPc == null)
-                curPc = blackPawns.get(rowPos + "" + colPos);
+            boolean stopShortTemp = stopShort;
 
             do{
                 rowTemp += rowToMov;
@@ -188,9 +196,9 @@ public class MiniChess {
                 if(rowTemp >= rows || colTemp >= cols || rowTemp < 0 || colTemp < 0)
                     break;
 
-                Character pc = whitePawns.get(rowTemp + "" + colTemp);
+                Character pc = wPawns.get(rowTemp + "" + colTemp);
                 if(pc == null)
-                    pc = blackPawns.get(rowTemp + "" + colTemp);
+                    pc = bPawns.get(rowTemp + "" + colTemp);
 
                 if(pc != null){
                     if(Character.isUpperCase(pc) == Character.isUpperCase(curPc) ||
@@ -198,13 +206,13 @@ public class MiniChess {
                         break;
                     if(captureSet == 0)
                         break;
-                    stopShort = true;
+                    stopShortTemp = true;
                 }
                 else if(captureSet == 3)
                     break;
 
                 moves.add(new int[]{rowPos, colPos, rowTemp, colTemp});
-            }while(stopShort);
+            }while(!stopShortTemp);
 
             int temp = colToMove;
             colToMove = - rowToMov;

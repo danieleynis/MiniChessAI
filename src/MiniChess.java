@@ -1,6 +1,6 @@
 /*
 Author: Daniel Eynis
-E-mail: eynis@pdx.edu
+E-mail: eynis at pdx dot edu
 
 Online resources consulted:
 https://docs.oracle.com/javase/7/docs/api/java/util/ArrayList.html
@@ -10,6 +10,7 @@ http://stackoverflow.com/questions/17606839/creating-a-set-of-arrays-in-java
 http://stackoverflow.com/questions/19388037/converting-characters-to-integers-in-java
 http://stackoverflow.com/questions/12940663/does-adding-a-duplicate-value-to-a-hashset-hashmap-replace-the-previous-value
 http://stackoverflow.com/questions/16784347/transposition-table-for-game-tree-connect-4
+http://wiki.cs.pdx.edu/mc-howto/movegen.html
  */
 
 import java.util.*;
@@ -68,8 +69,6 @@ public class MiniChess {
                 }
             }
         }
-
-        printBoard();
     }
 
     public void printBoard(){
@@ -94,32 +93,7 @@ public class MiniChess {
     }
 
     private int solveBoard(HashSet<String> wPawns, HashSet<String> bPawns){
-        ArrayList<int[]> moves = generateMoves(wPawns, bPawns);  // get list of moves
-
-        if(moves == null || moves.size() == 0) {  // if no moves left, signifies a loss for side on move
-            return -1;
-        }
-
-        int max = -1;
-        int val;
-        for(int[] move : moves){
-            HashSet<String> copyPawnsW = new HashSet<>(wPawns);  // create copy of white and black pawn hash sets
-            HashSet<String> copyPawnsB = new HashSet<>(bPawns);
-
-            boolean win = executeMove(copyPawnsW, copyPawnsB, move);  // execute move on copies
-
-            if(win) { // if execute move function returns true it is a win, return 1 no use in finding other wins
-                return 1;
-            }
-
-            currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip the current turn before recursive call
-            val = - solveBoard(copyPawnsW, copyPawnsB);  // negate the return value of the recursive call (negamax)
-            currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
-
-            max = Math.max(max, val);
-        }
-
-        return max;
+        return 0;
     }
 
     /*
@@ -161,45 +135,40 @@ public class MiniChess {
        int arrays will be returned specifying the starting position coordinated and the coordinates of position
        to move to.
      */
-    private ArrayList<int[]> generateMoves(HashSet<String> wPawns, HashSet<String> bPawns){
+    private ArrayList<int[]> generateMoves(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns){
         ArrayList<int[]> moves = new ArrayList<>();
         int row, col;
-        HashSet<String> onMovePawns;
+        HashMap<String, Character> onMove;
 
         if(currentTurn == 'W')
-            onMovePawns = wPawns;
+            onMove = wPawns;
         else
-            onMovePawns = bPawns;
+            onMove = bPawns;
 
-        for(String pos : onMovePawns){  // for each pawn for the side on move
+        for(String pos : onMove.keySet()){  // for each pawn for the side on move
             row = Character.getNumericValue(pos.charAt(0));  // get the pawn exact coordinates
             col = Character.getNumericValue(pos.charAt(1));
-
-            if(currentTurn == 'W'){
-                if(!bPawns.contains((row-1) + "" + col)){  // if the opposing side is not blocking forward move
-                    // add move to beginning of ArrayList as checking moves forward speeds up the potential of finding
-                    // a winning move
-                    moves.add(0, new int[]{row, col, row-1, col});
-                }
-                if(bPawns.contains((row-1) + "" + (col-1))){  // if there is an opponent pawn across from the pawn
-                    moves.add(new int[]{row, col, row-1, col-1});  // add a move to attack that pawn
-                }
-                if(bPawns.contains((row-1) + "" + (col+1))){
-                    moves.add(new int[]{row, col, row-1, col+1});
-                }
-            }
-            else{
-                if(!wPawns.contains((row+1) + "" + col)){
-                    moves.add(0, new int[]{row, col, row+1, col});
-                }
-                if(wPawns.contains((row+1) + "" + (col-1))){
-                    moves.add(new int[]{row, col, row+1, col-1});
-                }
-                if(wPawns.contains((row+1) + "" + (col+1))){
-                    moves.add(new int[]{row, col, row+1, col+1});
-                }
-            }
         }
         return moves;  // return the list of moves
     }
+
+    private ArrayList<int[]> generatePieceMoves(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns,
+                                                    int rowPos, int colPos, int rowToMov, int colToMove,
+                                                    boolean stopShort, int captureSet) {
+        ArrayList<int[]> moves = new ArrayList<>();
+
+        for(int i = 0; i < 4; ++i){
+            int rowTemp = rowPos;
+            int colTemp = colPos;
+
+
+            int temp = colToMove;
+            colToMove = - rowToMov;
+            rowToMov = temp;
+        }
+
+        return null;
+    }
+
+
 }

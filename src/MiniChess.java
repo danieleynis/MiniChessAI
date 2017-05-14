@@ -20,10 +20,13 @@ public class MiniChess {
     private int moveNum;
     private static final int cols = 5;
     private static final int rows = 6;
-    private HashMap<String, Character> whitePawns = new HashMap<>();
-    private HashMap<String, Character> blackPawns = new HashMap<>();
+    private HashMap<String, Character> whitePieces = new HashMap<>();
+    private HashMap<String, Character> blackPieces = new HashMap<>();
+    private static final HashMap<Character, Integer> pieceValues = new HashMap<>();
 
     MiniChess() {
+        initializePieceValues();
+
         Scanner input = new Scanner(System.in);
 
         int moveNum = input.nextInt();
@@ -60,23 +63,53 @@ public class MiniChess {
                 if(curPos == '.')
                     continue;
                 if(Character.isUpperCase(curPos)){
-                    whitePawns.put(i + "" + j, curPos);  // add pawn position in format "rowcol" to hash set
+                    whitePieces.put(i + "" + j, curPos);  // add pawn position in format "rowcol" to hash set
                 }
                 else{
-                    blackPawns.put(i + "" + j, curPos);
+                    blackPieces.put(i + "" + j, curPos);
                 }
             }
         }
+    }
+
+    private void initializePieceValues(){
+        pieceValues.put('p', 100);
+        pieceValues.put('b', 300);
+        pieceValues.put('n', 300);
+        pieceValues.put('r', 500);
+        pieceValues.put('q', 900);
+        pieceValues.put('k', 0);
+    }
+
+    private int valueState(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces){
+        int whiteValue = 0;
+        int blackValue = 0;
+        int netValue;
+
+        for(Character pc : wPieces.values()){
+            whiteValue += pieceValues.get(Character.toLowerCase(pc));
+        }
+
+        for(Character pc : bPieces.values()){
+            blackValue += pieceValues.get(pc);
+        }
+
+        if(currentTurn == 'W')
+            netValue = whiteValue - blackValue;
+        else
+            netValue = blackValue - whiteValue;
+
+        return netValue;
     }
 
     public void printBoard(){
         char toPrint;
         for(int i = 0; i < rows; ++i){
             for(int j = 0; j < cols; ++j){
-                if(whitePawns.containsKey(i + "" + j))
-                    toPrint = whitePawns.get(i + "" + j);
-                else if(blackPawns.containsKey(i + "" + j))
-                    toPrint = blackPawns.get(i + "" + j);
+                if(whitePieces.containsKey(i + "" + j))
+                    toPrint = whitePieces.get(i + "" + j);
+                else if(blackPieces.containsKey(i + "" + j))
+                    toPrint = blackPieces.get(i + "" + j);
                 else
                     toPrint = '.';
                 System.out.print(toPrint);
@@ -85,7 +118,7 @@ public class MiniChess {
         }
     }
 
-    private int solveBoard(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns){
+    private int solveBoard(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces){
         return 0;
     }
 
@@ -94,19 +127,19 @@ public class MiniChess {
        gives the starting position row and column and the position to move to row and column. This function will
        modify the hash sets directly as it assumes copies are saved if necessary.
      */
-    private boolean executeMove(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns, int[] move){
+    private boolean executeMove(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int[] move){
         boolean win = false;
 
         HashMap<String, Character> onMovePawns;
         HashMap<String, Character> waitingPawns;
 
         if(currentTurn == 'W') {  // figure out who is on move and who is waiting
-            onMovePawns = wPawns;
-            waitingPawns = bPawns;
+            onMovePawns = wPieces;
+            waitingPawns = bPieces;
         }
         else {
-            onMovePawns = bPawns;
-            waitingPawns = wPawns;
+            onMovePawns = bPieces;
+            waitingPawns = wPieces;
         }
 
         String startLoc = move[0] + "" + move[1];
@@ -153,15 +186,15 @@ public class MiniChess {
        int arrays will be returned specifying the starting position coordinated and the coordinates of position
        to move to.
      */
-    private ArrayList<int[]> generateMoves(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns){
+    private ArrayList<int[]> generateMoves(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces){
         ArrayList<int[]> moves = new ArrayList<>();
         int row, col;
         HashMap<String, Character> onMove;
 
         if(currentTurn == 'W')
-            onMove = wPawns;
+            onMove = wPieces;
         else
-            onMove = bPawns;
+            onMove = bPieces;
 
         for(String pos : onMove.keySet()){  // for each pawn for the side on move
             row = Character.getNumericValue(pos.charAt(0));  // get the pawn exact coordinates
@@ -173,41 +206,41 @@ public class MiniChess {
                 case 'k':
                     stopShort = true;
                 case 'q':
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, stopShort, 1));
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 1, stopShort, 1));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 1, 0, stopShort, 1));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 1, 1, stopShort, 1));
                     break;
                 case 'b':
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 1, false, 1));
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, true, 0));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 1, 1, false, 1));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 1, 0, true, 0));
                     break;
                 case 'r':
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, false, 1));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 1, 0, false, 1));
                     break;
                 case 'n':
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 2, 1, true, 1));
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 2, -1, true, 1));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 2, 1, true, 1));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, 2, -1, true, 1));
                     break;
                 case 'p':
                     int dir = -1;
                     if(Character.isLowerCase(pc))
                         dir = 1;
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, dir, 0, true, 0));
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, dir, -1, true, 2));
-                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, dir, 1, true, 2));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, dir, 0, true, 0));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, dir, -1, true, 2));
+                    moves.addAll(generatePieceMoves(wPieces, bPieces, row, col, dir, 1, true, 2));
                     break;
             }
         }
         return moves;  // return the list of moves
     }
 
-    private ArrayList<int[]> generatePieceMoves(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns,
+    private ArrayList<int[]> generatePieceMoves(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces,
                                                     int rowPos, int colPos, int rowToMov, int colToMove,
                                                     boolean stopShort, int captureSet) {
         ArrayList<int[]> moves = new ArrayList<>();
 
-        Character curPc = wPawns.get(rowPos + "" + colPos);
+        Character curPc = wPieces.get(rowPos + "" + colPos);
         if(curPc == null)
-            curPc = bPawns.get(rowPos + "" + colPos);
+            curPc = bPieces.get(rowPos + "" + colPos);
 
         for(int i = 0; i < 4; ++i){
             int rowTemp = rowPos;
@@ -221,9 +254,9 @@ public class MiniChess {
                 if(rowTemp >= rows || colTemp >= cols || rowTemp < 0 || colTemp < 0)
                     break;
 
-                Character pc = wPawns.get(rowTemp + "" + colTemp);
+                Character pc = wPieces.get(rowTemp + "" + colTemp);
                 if(pc == null)
-                    pc = bPawns.get(rowTemp + "" + colTemp);
+                    pc = bPieces.get(rowTemp + "" + colTemp);
 
                 if(pc != null){
                     if(Character.isUpperCase(pc) == Character.isUpperCase(curPc) ||

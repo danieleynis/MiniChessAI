@@ -155,20 +155,32 @@ public class MiniChess {
             col = Character.getNumericValue(pos.charAt(1));
             char pc = onMove.get(pos);
             boolean stopShort = false;
-            switch (Character.toLowerCase(pc)){
+            Character curPc = Character.toLowerCase(pc);
+            switch (curPc){
                 case 'k':
                     stopShort = true;
                 case 'q':
                     moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, stopShort, 1));
                     moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 1, stopShort, 1));
                     break;
-                case 'r':
-                    break;
                 case 'b':
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 1, false, 1));
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, true, 0));
+                    break;
+                case 'r':
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 1, 0, false, 1));
                     break;
                 case 'n':
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 2, 1, true, 1));
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, 2, -1, true, 1));
                     break;
                 case 'p':
+                    int dir = -1;
+                    if(Character.isLowerCase(pc))
+                        dir = 1;
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, dir, 0, true, 0));
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, dir, -1, true, 2));
+                    moves.addAll(generatePieceMoves(wPawns, bPawns, row, col, dir, 1, true, 2));
                     break;
             }
         }
@@ -208,11 +220,14 @@ public class MiniChess {
                         break;
                     stopShortTemp = true;
                 }
-                else if(captureSet == 3)
+                else if(captureSet == 2)
                     break;
 
                 moves.add(new int[]{rowPos, colPos, rowTemp, colTemp});
             }while(!stopShortTemp);
+
+            if(Character.toLowerCase(curPc) == 'p')
+                break;
 
             int temp = colToMove;
             colToMove = - rowToMov;

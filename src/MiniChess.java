@@ -93,10 +93,6 @@ public class MiniChess {
         }
     }
 
-    public int solveBoard(){
-        return 0;
-    }
-
     private int solveBoard(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns){
         return 0;
     }
@@ -106,12 +102,11 @@ public class MiniChess {
        gives the starting position row and column and the position to move to row and column. This function will
        modify the hash sets directly as it assumes copies are saved if necessary.
      */
-    private boolean executeMove(HashSet<String> wPawns, HashSet<String> bPawns, int[] move){
-        if(move[2] == 0 || move[2] == rows-1)  // if there is a winning move (pawn reached end) return true
-            return true;
+    private boolean executeMove(HashMap<String, Character> wPawns, HashMap<String, Character> bPawns, int[] move){
+        boolean win = false;
 
-        HashSet<String> onMovePawns;
-        HashSet<String> waitingPawns;
+        HashMap<String, Character> onMovePawns;
+        HashMap<String, Character> waitingPawns;
 
         if(currentTurn == 'W') {  // figure out who is on move and who is waiting
             onMovePawns = wPawns;
@@ -125,14 +120,16 @@ public class MiniChess {
         String startLoc = move[0] + "" + move[1];
         String endLoc = move[2] + "" + move[3];
 
-        if(waitingPawns.contains(endLoc)){  // if the position to move to has an opponent piece remove it
+        if(waitingPawns.containsKey(endLoc)){  // if the position to move to has an opponent piece remove it
+            if(Character.toLowerCase(waitingPawns.get(endLoc)) == 'k')
+                win = true;
             waitingPawns.remove(endLoc);
         }
 
+        onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
         onMovePawns.remove(startLoc);  // remove the old position for on move side
-        onMovePawns.add(endLoc);  // add the new position for on move side
 
-        return false;  // return no win
+        return win;  // return win status
     }
 
     /*

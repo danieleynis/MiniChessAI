@@ -18,10 +18,8 @@ import java.util.*;
 public class MiniChess {
     private char currentTurn; // keeps track of the current player turn 'W' or 'B'
     private int moveNum;
-    private final int cols = 5;
-    private final int rows  = 6;
-    private HashSet<String> wPawns = new HashSet<>(); // hash set of all white pawns
-    private HashSet<String> bPawns = new HashSet<>(); // hash set of all black pawns
+    private static final int cols = 5;
+    private static final int rows = 6;
     private HashMap<String, Character> whitePawns = new HashMap<>();
     private HashMap<String, Character> blackPawns = new HashMap<>();
 
@@ -68,12 +66,6 @@ public class MiniChess {
                     blackPawns.put(i + "" + j, curPos);
                 }
             }
-        }
-
-        printBoard();
-        ArrayList<int[]> movs = generateMoves(whitePawns, blackPawns);
-        for(int[] mov : movs){
-            System.out.println(Arrays.toString(mov));
         }
     }
 
@@ -130,6 +122,30 @@ public class MiniChess {
         onMovePawns.remove(startLoc);  // remove the old position for on move side
 
         return win;  // return win status
+    }
+
+    private int[] decodeMove(String toDecode){
+        assert toDecode.length() == 5;
+        int[] move = new int[4];
+        int[] decoder = new int[]{5, 4, 3, 2, 1, 0};
+        move[0] = decoder[Character.getNumericValue(toDecode.charAt(1)) - 1];
+        move[1] = toDecode.charAt(0) - 'a';
+        move[2] = decoder[Character.getNumericValue(toDecode.charAt(4)) - 1];
+        move[3] = toDecode.charAt(3) - 'a';
+        return move;
+    }
+
+    private String encodeMove(int[] toEncode){
+        assert toEncode.length == 4;
+        int[] intEncoder = new int[]{6, 5, 4, 3, 2, 1};
+        char[] charEncoder = new char[]{'a', 'b', 'c', 'd', 'e'};
+        StringBuilder encoded = new StringBuilder();
+        encoded.append(charEncoder[toEncode[1]])
+                .append(intEncoder[toEncode[0]])
+                .append('-')
+                .append(charEncoder[toEncode[3]])
+                .append(intEncoder[toEncode[2]]);
+        return encoded.toString();
     }
 
     /*

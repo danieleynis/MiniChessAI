@@ -11,6 +11,7 @@ http://stackoverflow.com/questions/19388037/converting-characters-to-integers-in
 http://stackoverflow.com/questions/12940663/does-adding-a-duplicate-value-to-a-hashset-hashmap-replace-the-previous-value
 http://stackoverflow.com/questions/16784347/transposition-table-for-game-tree-connect-4
 http://wiki.cs.pdx.edu/mc-howto/movegen.html
+http://wiki.cs.pdx.edu/mc-howto/negamax.html
  */
 
 import java.util.*;
@@ -18,7 +19,7 @@ import java.util.*;
 public class MiniChess {
     private char currentTurn; // keeps track of the current player turn 'W' or 'B'
     private int moveNum;
-    private int depthLimit = 5;
+    private static final int depthLimit = 5;
     private static final int cols = 5;
     private static final int rows = 6;
     private int[] moveToMake = null;
@@ -104,7 +105,7 @@ public class MiniChess {
         return netValue;
     }
 
-    public void printBoard(){
+    private void printBoard(){
         char toPrint;
         for(int i = 0; i < rows; ++i){
             for(int j = 0; j < cols; ++j){
@@ -139,7 +140,8 @@ public class MiniChess {
     }
 
     private int negamaxSearch(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int depth){
-
+        if(!wPieces.containsValue('K') || !bPieces.containsValue('k'))
+            return Integer.MIN_VALUE;
         if(depth <= 0)
             return valueState(wPieces, bPieces);
 
@@ -155,11 +157,7 @@ public class MiniChess {
             HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
             HashMap<String, Character> copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
 
-            boolean win = executeMove(copyPiecesW, copyPiecesB, move);  // execute move on copies
-
-            if(win) { // if execute move function returns true it is a win
-                return Integer.MAX_VALUE;
-            }
+            executeMove(copyPiecesW, copyPiecesB, move);  // execute move on copies
 
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip the current turn before recursive call
             val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1);  // negate the return value of the recursive call (negamax)

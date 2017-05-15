@@ -15,6 +15,7 @@ http://wiki.cs.pdx.edu/mc-howto/negamax.html
 https://en.wikipedia.org/wiki/Negamax
  */
 
+import java.io.*;
 import java.util.*;
 
 public class MiniChess {
@@ -31,55 +32,86 @@ public class MiniChess {
     MiniChess() {
         initializePieceValues();
 
-        Scanner input = new Scanner(System.in);
+        try {
+            Scanner input = new Scanner(new File("C:\\Users\\danie_000\\IdeaProjects\\MiniChess\\src\\default_board.txt"));
 
-        int moveNum = input.nextInt();
-        assert moveNum >= 0;
+            int moveNum = input.nextInt();
+            assert moveNum >= 0;
 
-        String curTurn = input.next();
-        if(!curTurn.isEmpty())
-            currentTurn = curTurn.charAt(0);
-        input.nextLine();
-        assert currentTurn == 'W' || currentTurn == 'B';
+            String curTurn = input.next();
+            if(!curTurn.isEmpty())
+                currentTurn = curTurn.charAt(0);
+            input.nextLine();
+            assert currentTurn == 'W' || currentTurn == 'B';
 
-        ArrayList<String> inputLines = new ArrayList<>();  // read in input lines into an array list
+            ArrayList<String> inputLines = new ArrayList<>();  // read in input lines into an array list
 
-        String lineRead;
-        while(input.hasNextLine()) {
-            lineRead = input.nextLine();
-            if(lineRead.isEmpty())  // one encounter empty line it is end of input, used for console input
-                break;
-            inputLines.add(lineRead);
-        }
+            String lineRead;
+            while(input.hasNextLine()) {
+                lineRead = input.nextLine();
+                if(lineRead.isEmpty())  // one encounter empty line it is end of input, used for console input
+                    break;
+                inputLines.add(lineRead);
+            }
 
-        assert inputLines.size() != 0 && inputLines.size() == rows;
+            assert inputLines.size() != 0 && inputLines.size() == rows;
 
-        char[] pieceArray;
-        for (int i = 0; i < inputLines.size(); ++i){
-            pieceArray = inputLines.get(i).toCharArray();
-            assert pieceArray.length == cols;
-            for (int j = 0; j < cols; ++j){
-                char curPos = pieceArray[j];
-                char validPc = Character.toLowerCase(curPos);
-                assert validPc == '.' || validPc == 'p' || validPc == 'k' || validPc == 'q' || validPc == 'b'
-                        || validPc == 'n' || validPc == 'r';
+            char[] pieceArray;
+            for (int i = 0; i < inputLines.size(); ++i){
+                pieceArray = inputLines.get(i).toCharArray();
+                assert pieceArray.length == cols;
+                for (int j = 0; j < cols; ++j){
+                    char curPos = pieceArray[j];
+                    char validPc = Character.toLowerCase(curPos);
+                    assert validPc == '.' || validPc == 'p' || validPc == 'k' || validPc == 'q' || validPc == 'b'
+                            || validPc == 'n' || validPc == 'r';
 
-                if(curPos == '.')
-                    continue;
-                if(Character.isUpperCase(curPos)){
-                    whitePieces.put(i + "" + j, curPos);  // add pawn position in format "rowcol" to hash set
-                }
-                else{
-                    blackPieces.put(i + "" + j, curPos);
+                    if(curPos == '.')
+                        continue;
+                    if(Character.isUpperCase(curPos)){
+                        whitePieces.put(i + "" + j, curPos);  // add pawn position in format "rowcol" to hash set
+                    }
+                    else{
+                        blackPieces.put(i + "" + j, curPos);
+                    }
                 }
             }
+        }catch (FileNotFoundException e){
+            System.out.println(e.getMessage());
         }
-        /*
-        findMove();
-        executeMove(whitePieces, blackPieces, moveToMake);
-        printBoard();
-        System.out.println(encodeMove(moveToMake));
-        */
+    }
+
+    public void playOnServer(String offerID) {
+        try {
+            if(offerID == null)
+                return;
+            printBoard();
+            Client imcs = new Client("imcs.svcs.cs.pdx.edu", "3589", "slowclap", "slowclap");
+            char myColor = imcs.accept(offerID, 'W');
+            if(myColor == 'W'){
+                currentTurn = 'W';
+                findMove();
+                executeMove(whitePieces, blackPieces, moveToMake);
+                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                imcs.sendMove(encodeMove(moveToMake));
+                printBoard();
+            }
+            else
+                currentTurn = 'B';
+            for(int i = 0; i < 40; ++i){
+                int[] move = decodeMove(imcs.getMove());
+                executeMove(whitePieces, blackPieces, move);
+                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                printBoard();
+                findMove();
+                executeMove(whitePieces, blackPieces, moveToMake);
+                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                imcs.sendMove(encodeMove(moveToMake));
+            }
+            imcs.close();
+        } catch (IOException e){
+            System.out.println(e.getMessage());
+        }
     }
 
     private void initializePieceValues(){
@@ -129,6 +161,7 @@ public class MiniChess {
     }
 
     private void findMove(){
+        moveToMake = null;
         ArrayList<int[]> moves = generateMoves(whitePieces, blackPieces);  // get list of moves
 
         int minVal = Integer.MAX_VALUE;

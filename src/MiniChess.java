@@ -12,6 +12,7 @@ http://stackoverflow.com/questions/12940663/does-adding-a-duplicate-value-to-a-h
 http://stackoverflow.com/questions/16784347/transposition-table-for-game-tree-connect-4
 http://wiki.cs.pdx.edu/mc-howto/movegen.html
 http://wiki.cs.pdx.edu/mc-howto/negamax.html
+https://en.wikipedia.org/wiki/Negamax
  */
 
 import java.util.*;
@@ -73,6 +74,12 @@ public class MiniChess {
                 }
             }
         }
+        /*
+        findMove();
+        executeMove(whitePieces, blackPieces, moveToMake);
+        printBoard();
+        System.out.println(encodeMove(moveToMake));
+        */
     }
 
     private void initializePieceValues(){
@@ -130,7 +137,7 @@ public class MiniChess {
             HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
             executeMove(copyPiecesW, copyPiecesB, move);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit);
+            int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, Integer.MIN_VALUE+1, Integer.MAX_VALUE);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
             if(val < minVal){
                 moveToMake = move;
@@ -139,7 +146,8 @@ public class MiniChess {
         }
     }
 
-    private int negamaxSearch(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int depth){
+    private int negamaxSearch(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int depth,
+                                int alpha, int beta){
         if(!wPieces.containsValue('K') || !bPieces.containsValue('k'))
             return Integer.MIN_VALUE;
         if(depth <= 0)
@@ -151,7 +159,7 @@ public class MiniChess {
             return valueState(wPieces, bPieces);
         }
 
-        int max = Integer.MIN_VALUE;
+        int bestValue = Integer.MIN_VALUE;
         int val;
         for(int[] move : moves){
             HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
@@ -160,13 +168,15 @@ public class MiniChess {
             executeMove(copyPiecesW, copyPiecesB, move);  // execute move on copies
 
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip the current turn before recursive call
-            val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1);  // negate the return value of the recursive call (negamax)
+            val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -alpha, -beta);  // negate the return value of the recursive call (negamax)
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
-
-            max = Math.max(max, val);
+            bestValue = Math.max(bestValue, val);
+            alpha = Math.max(alpha, val);
+            if(alpha >= beta)
+                break;
         }
 
-        return max;
+        return bestValue;
     }
 
     /*

@@ -21,7 +21,7 @@ import java.util.*;
 public class MiniChess {
     private char currentTurn; // keeps track of the current player turn 'W' or 'B'
     private int moveNum;
-    private static final int depthLimit = 6;
+    private static final int depthLimit = 4;
     private static final int cols = 5;
     private static final int rows = 6;
     private int[] moveToMake = null;
@@ -33,8 +33,8 @@ public class MiniChess {
         initializePieceValues();
 
         try {
-            //Scanner input = new Scanner(new File("C:\\Users\\danie_000\\IdeaProjects\\MiniChess\\src\\default_board.txt"));
-            Scanner input = new Scanner(System.in);
+            Scanner input = new Scanner(new File("C:\\Users\\danie_000\\IdeaProjects\\MiniChess\\src\\default_board.txt"));
+            //Scanner input = new Scanner(System.in);
 
             int moveNum = input.nextInt();
             assert moveNum >= 0;
@@ -77,13 +77,13 @@ public class MiniChess {
                     }
                 }
             }
-
+/*
             findMove();
             executeMove(whitePieces, blackPieces, moveToMake);
             printBoard();
 
             throw new FileNotFoundException();
-
+*/
         }catch (FileNotFoundException e){
             System.out.println(e.getMessage());
         }
@@ -138,7 +138,7 @@ public class MiniChess {
         pieceValues.put('n', 300);
         pieceValues.put('r', 500);
         pieceValues.put('q', 900);
-        pieceValues.put('k', 0);
+        pieceValues.put('k', 10000000);
     }
 
     private int valueState(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces){
@@ -156,17 +156,9 @@ public class MiniChess {
 
         if(currentTurn == 'W') {
             netValue = whiteValue - blackValue;
-            if(!wPieces.containsValue('K'))
-                netValue -= Integer.MAX_VALUE/2;
-            else if(!bPieces.containsValue('k'))
-                netValue += Integer.MAX_VALUE/2;
         }
         else {
             netValue = blackValue - whiteValue;
-            if(!bPieces.containsValue('K'))
-                netValue -= Integer.MAX_VALUE/2;
-            else if(!wPieces.containsValue('k'))
-                netValue += Integer.MAX_VALUE/2;
         }
 
         return netValue;
@@ -200,7 +192,7 @@ public class MiniChess {
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
             int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, Integer.MIN_VALUE+1, Integer.MAX_VALUE);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            if(val <= minVal){
+            if(val < minVal){
                 moveToMake = move;
                 minVal = val;
             }
@@ -209,9 +201,7 @@ public class MiniChess {
 
     private int negamaxSearch(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int depth,
                                 int alpha, int beta){
-        if(!wPieces.containsValue('K') || !bPieces.containsValue('k'))
-            return Integer.MIN_VALUE/2;
-        if(depth <= 0)
+        if(depth <= 0 || !wPieces.containsValue('K') || !bPieces.containsValue('k'))
             return valueState(wPieces, bPieces);
 
         ArrayList<int[]> moves = generateMoves(wPieces, bPieces);  // get list of moves

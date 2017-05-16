@@ -154,10 +154,20 @@ public class MiniChess {
             blackValue += pieceValues.get(pc);
         }
 
-        if(currentTurn == 'W')
+        if(currentTurn == 'W') {
             netValue = whiteValue - blackValue;
-        else
+            if(!wPieces.containsValue('K'))
+                netValue -= Integer.MAX_VALUE/2;
+            else if(!bPieces.containsValue('k'))
+                netValue += Integer.MAX_VALUE/2;
+        }
+        else {
             netValue = blackValue - whiteValue;
+            if(!bPieces.containsValue('K'))
+                netValue -= Integer.MAX_VALUE/2;
+            else if(!wPieces.containsValue('k'))
+                netValue += Integer.MAX_VALUE/2;
+        }
 
         return netValue;
     }
@@ -223,8 +233,8 @@ public class MiniChess {
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
             bestValue = Math.max(bestValue, val);
             alpha = Math.max(alpha, val);
-            if(alpha >= beta)
-                break;
+            //if(alpha >= beta)
+            //    break;
         }
 
         return bestValue;

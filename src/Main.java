@@ -1,6 +1,6 @@
 public class Main{
     public static void main(String[] args){
         MiniChess mc = new MiniChess();
-        //mc.playOnServer("12754");
+        //mc.playOnServer("12755");
     }
 }

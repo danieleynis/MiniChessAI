@@ -21,7 +21,7 @@ import java.util.*;
 public class MiniChess {
     private char currentTurn; // keeps track of the current player turn 'W' or 'B'
     private int moveNum;
-    private static final int depthLimit = 5;
+    private static final int depthLimit = 6;
     private static final int cols = 5;
     private static final int rows = 6;
     private int[] moveToMake = null;
@@ -33,7 +33,8 @@ public class MiniChess {
         initializePieceValues();
 
         try {
-            Scanner input = new Scanner(new File("C:\\Users\\danie_000\\IdeaProjects\\MiniChess\\src\\default_board.txt"));
+            //Scanner input = new Scanner(new File("C:\\Users\\danie_000\\IdeaProjects\\MiniChess\\src\\default_board.txt"));
+            Scanner input = new Scanner(System.in);
 
             int moveNum = input.nextInt();
             assert moveNum >= 0;
@@ -76,6 +77,13 @@ public class MiniChess {
                     }
                 }
             }
+
+            findMove();
+            executeMove(whitePieces, blackPieces, moveToMake);
+            printBoard();
+
+            throw new FileNotFoundException();
+
         }catch (FileNotFoundException e){
             System.out.println(e.getMessage());
         }
@@ -87,26 +95,36 @@ public class MiniChess {
                 return;
             printBoard();
             Client imcs = new Client("imcs.svcs.cs.pdx.edu", "3589", "slowclap", "slowclap");
-            char myColor = imcs.accept(offerID, 'W');
+            char myColor = imcs.accept(offerID, '?');
             if(myColor == 'W'){
                 currentTurn = 'W';
                 findMove();
                 executeMove(whitePieces, blackPieces, moveToMake);
-                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
                 imcs.sendMove(encodeMove(moveToMake));
                 printBoard();
+                for(int i = 0; i < 40; ++i){
+                    currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                    int[] move = decodeMove(imcs.getMove());
+                    executeMove(whitePieces, blackPieces, move);
+                    printBoard();
+                    currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                    findMove();
+                    executeMove(whitePieces, blackPieces, moveToMake);
+                    imcs.sendMove(encodeMove(moveToMake));
+                }
             }
-            else
+            else{
                 currentTurn = 'B';
-            for(int i = 0; i < 40; ++i){
-                int[] move = decodeMove(imcs.getMove());
-                executeMove(whitePieces, blackPieces, move);
-                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-                printBoard();
-                findMove();
-                executeMove(whitePieces, blackPieces, moveToMake);
-                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-                imcs.sendMove(encodeMove(moveToMake));
+                for(int i = 0; i < 40; ++i){
+                    int[] move = decodeMove(imcs.getMove());
+                    currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                    executeMove(whitePieces, blackPieces, move);
+                    currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                    printBoard();
+                    findMove();
+                    executeMove(whitePieces, blackPieces, moveToMake);
+                    imcs.sendMove(encodeMove(moveToMake));
+                }
             }
             imcs.close();
         } catch (IOException e){
@@ -172,7 +190,7 @@ public class MiniChess {
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
             int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, Integer.MIN_VALUE+1, Integer.MAX_VALUE);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            if(val < minVal){
+            if(val <= minVal){
                 moveToMake = move;
                 minVal = val;
             }
@@ -182,7 +200,7 @@ public class MiniChess {
     private int negamaxSearch(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int depth,
                                 int alpha, int beta){
         if(!wPieces.containsValue('K') || !bPieces.containsValue('k'))
-            return Integer.MIN_VALUE;
+            return Integer.MIN_VALUE/2;
         if(depth <= 0)
             return valueState(wPieces, bPieces);
 
@@ -241,7 +259,18 @@ public class MiniChess {
             waitingPawns.remove(endLoc);
         }
 
-        onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
+        if(Character.toLowerCase(onMovePawns.get(startLoc)) == 'p') {
+            if (move[2] == 0 || move[2] == 5) {
+                if (currentTurn == 'W')
+                    onMovePawns.put(endLoc, 'Q');
+                else
+                    onMovePawns.put(endLoc, 'q');
+            }
+            else
+                onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
+        }
+        else
+            onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
         onMovePawns.remove(startLoc);  // remove the old position for on move side
 
         return win;  // return win status

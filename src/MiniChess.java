@@ -79,6 +79,10 @@ public class MiniChess {
             }
 /*
             findMove();
+
+            for(int[] move : generateMoves(whitePieces, blackPieces)){
+                System.out.println(Arrays.toString(move));
+            }
             executeMove(whitePieces, blackPieces, moveToMake);
             printBoard();
 
@@ -190,7 +194,7 @@ public class MiniChess {
             HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
             executeMove(copyPiecesW, copyPiecesB, move);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, Integer.MIN_VALUE+1, Integer.MAX_VALUE);
+            int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, -(Integer.MAX_VALUE), Integer.MAX_VALUE);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
             if(val < minVal){
                 moveToMake = move;
@@ -210,21 +214,30 @@ public class MiniChess {
             return valueState(wPieces, bPieces);
         }
 
-        int bestValue = Integer.MIN_VALUE;
+        HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
+        HashMap<String, Character> copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
+
+        executeMove(copyPiecesW, copyPiecesB, moves.get(0));  // execute move on copies
+        currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+        int bestValue = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -beta, -alpha);
+        currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+        if(bestValue > beta)
+            return bestValue;
+        alpha = Math.max(alpha, bestValue);
         int val;
-        for(int[] move : moves){
-            HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
-            HashMap<String, Character> copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
+        for(int[] move : moves.subList(1, moves.size()-1)){
+            copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
+            copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
 
             executeMove(copyPiecesW, copyPiecesB, move);  // execute move on copies
 
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip the current turn before recursive call
-            val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -alpha, -beta);  // negate the return value of the recursive call (negamax)
+            val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -beta, -alpha);  // negate the return value of the recursive call (negamax)
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
+            if(val > beta)
+                return val;
             bestValue = Math.max(bestValue, val);
             alpha = Math.max(alpha, val);
-            //if(alpha >= beta)
-            //    break;
         }
 
         return bestValue;

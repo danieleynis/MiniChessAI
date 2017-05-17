@@ -21,7 +21,7 @@ import java.util.*;
 public class MiniChess {
     private char currentTurn; // keeps track of the current player turn 'W' or 'B'
     private int moveNum;
-    private static final int depthLimit = 4;
+    private static final int depthLimit = 6;
     private static final int cols = 5;
     private static final int rows = 6;
     private int[] moveToMake = null;
@@ -226,6 +226,9 @@ public class MiniChess {
             val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -beta, -alpha);  // negate the return value of the recursive call (negamax)
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
             bestValue = Math.max(bestValue, val);
+            alpha = Math.max(alpha, val);
+            if(alpha >= beta)
+                break;
         }
 
         return bestValue;

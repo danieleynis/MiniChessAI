@@ -211,33 +211,21 @@ public class MiniChess {
         ArrayList<int[]> moves = generateMoves(wPieces, bPieces);  // get list of moves
 
         if(moves == null || moves.size() == 0) {  // if no moves left, signifies a loss for side on move
-            return valueState(wPieces, bPieces);
+            return -10000000;
         }
 
-        HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
-        HashMap<String, Character> copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
-
-        executeMove(copyPiecesW, copyPiecesB, moves.get(0));  // execute move on copies
-        currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-        int bestValue = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -beta, -alpha);
-        currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-        if(bestValue > beta)
-            return bestValue;
-        alpha = Math.max(alpha, bestValue);
+        int bestValue = Integer.MIN_VALUE;
         int val;
-        for(int[] move : moves.subList(1, moves.size()-1)){
-            copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
-            copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
+        for(int[] move : moves){
+            HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
+            HashMap<String, Character> copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
 
             executeMove(copyPiecesW, copyPiecesB, move);  // execute move on copies
 
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip the current turn before recursive call
             val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -beta, -alpha);  // negate the return value of the recursive call (negamax)
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
-            if(val > beta)
-                return val;
             bestValue = Math.max(bestValue, val);
-            alpha = Math.max(alpha, val);
         }
 
         return bestValue;

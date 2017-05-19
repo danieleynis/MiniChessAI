@@ -101,7 +101,10 @@ public class MiniChess {
                 printBoard();
                 for(int i = 0; i < 41; ++i){
                     currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-                    int[] move = decodeMove(imcs.getMove());
+                    String opMove = imcs.getMove();
+                    if(opMove == null)
+                        break;
+                    int[] move = decodeMove(opMove);
                     executeMove(whitePieces, blackPieces, move);
                     currentTurn = (currentTurn == 'W' ? 'B' : 'W');
                     findMove();
@@ -111,8 +114,11 @@ public class MiniChess {
             }
             else{
                 currentTurn = 'B';
-                for(int i = 0; i < 40; ++i){
-                    int[] move = decodeMove(imcs.getMove());
+                for(int i = 0; i < 41; ++i){
+                    String opMove = imcs.getMove();
+                    if(opMove == null)
+                        break;
+                    int[] move = decodeMove(opMove);
                     currentTurn = (currentTurn == 'W' ? 'B' : 'W');
                     executeMove(whitePieces, blackPieces, move);
                     currentTurn = (currentTurn == 'W' ? 'B' : 'W');
@@ -180,7 +186,7 @@ public class MiniChess {
         ArrayList<int[]> moves = generateMoves(whitePieces, blackPieces);  // get list of moves
         HashMap<String, Character> copyPiecesW = new HashMap<>(whitePieces);  // create copy of white and black pawn hash sets
         HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
-
+        Collections.shuffle(moves);
         int minVal = Integer.MAX_VALUE;
         for(int[] move : moves){
             char[] moveInfo = executeMove(copyPiecesW, copyPiecesB, move);

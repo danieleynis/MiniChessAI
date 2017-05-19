@@ -2,9 +2,7 @@
 out
 *.iml
 *.swp
-*.class
 *.docx
 *.pdf
 *.zip
 *.nfs*
-Client.java

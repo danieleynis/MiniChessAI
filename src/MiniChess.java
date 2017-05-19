@@ -41,7 +41,6 @@ public class MiniChess {
                               "PPPPP\n" +
                               "RNBQK\n";
 
-        //Scanner input = new Scanner(new File("C:\\Users\\danie_000\\IdeaProjects\\MiniChess\\src\\default_board.txt"));
         Scanner input = new Scanner(defaultBoard);
 
         int moveNum = input.nextInt();
@@ -85,6 +84,15 @@ public class MiniChess {
                 }
             }
         }
+/*
+        findMove();
+        System.out.println(curTurn);
+        System.out.println(Arrays.toString(moveToMake));
+        char[] moveinfo = executeMove(whitePieces, blackPieces, moveToMake);
+        printBoard();
+        undoMove(whitePieces, blackPieces, moveToMake, moveinfo);
+        printBoard();
+        */
     }
 
     public void playOnServer(String offerID) {
@@ -100,7 +108,7 @@ public class MiniChess {
                 executeMove(whitePieces, blackPieces, moveToMake);
                 imcs.sendMove(encodeMove(moveToMake));
                 printBoard();
-                for(int i = 0; i < 40; ++i){
+                for(int i = 0; i < 41; ++i){
                     currentTurn = (currentTurn == 'W' ? 'B' : 'W');
                     int[] move = decodeMove(imcs.getMove());
                     executeMove(whitePieces, blackPieces, move);
@@ -180,15 +188,17 @@ public class MiniChess {
         moveToMake = null;
         ArrayList<int[]> moves = generateMoves(whitePieces, blackPieces);  // get list of moves
 
+        HashMap<String, Character> copyPiecesW = new HashMap<>(whitePieces);  // create copy of white and black pawn hash sets
+        HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
+
         int minVal = Integer.MAX_VALUE;
         for(int[] move : moves){
-            HashMap<String, Character> copyPiecesW = new HashMap<>(whitePieces);  // create copy of white and black pawn hash sets
-            HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
-            executeMove(copyPiecesW, copyPiecesB, move);
+            char[] moveInfo = executeMove(copyPiecesW, copyPiecesB, move);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
             int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, -(Integer.MAX_VALUE), Integer.MAX_VALUE);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            if(val < minVal){
+            undoMove(copyPiecesW, copyPiecesB, move, moveInfo);
+            if(val <= minVal){
                 moveToMake = move;
                 minVal = val;
             }
@@ -209,14 +219,11 @@ public class MiniChess {
         int bestValue = Integer.MIN_VALUE;
         int val;
         for(int[] move : moves){
-            HashMap<String, Character> copyPiecesW = new HashMap<>(wPieces);  // create copy of white and black pawn hash sets
-            HashMap<String, Character> copyPiecesB = new HashMap<>(bPieces);  // create copy of white and black pawn hash sets
-
-            executeMove(copyPiecesW, copyPiecesB, move);  // execute move on copies
-
+            char[] moveInfo = executeMove(wPieces, bPieces, move);  // execute move on copies
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip the current turn before recursive call
-            val = - negamaxSearch(copyPiecesW, copyPiecesB, depth-1, -beta, -alpha);  // negate the return value of the recursive call (negamax)
+            val = - negamaxSearch(wPieces, bPieces, depth-1, -beta, -alpha);  // negate the return value of the recursive call (negamax)
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');  // flip back on recursive return
+            undoMove(wPieces, bPieces, move, moveInfo);
             bestValue = Math.max(bestValue, val);
             alpha = Math.max(alpha, val);
             if(alpha >= beta)
@@ -231,8 +238,8 @@ public class MiniChess {
        gives the starting position row and column and the position to move to row and column. This function will
        modify the hash sets directly as it assumes copies are saved if necessary.
      */
-    private boolean executeMove(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int[] move){
-        boolean win = false;
+    private char[] executeMove(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int[] move){
+        char[] moveInfo = new char[]{Character.MIN_VALUE, Character.MIN_VALUE};
 
         HashMap<String, Character> onMovePawns;
         HashMap<String, Character> waitingPawns;
@@ -250,24 +257,54 @@ public class MiniChess {
         String endLoc = move[2] + "" + move[3];
 
         if(waitingPawns.containsKey(endLoc)){  // if the position to move to has an opponent piece remove it
+            moveInfo[1] = waitingPawns.get(endLoc);
             waitingPawns.remove(endLoc);
         }
 
-        if(Character.toLowerCase(onMovePawns.get(startLoc)) == 'p') {
-            if (move[2] == 0 || move[2] == 5) {
-                if (currentTurn == 'W')
-                    onMovePawns.put(endLoc, 'Q');
-                else
-                    onMovePawns.put(endLoc, 'q');
-            }
-            else
+        try {
+            if (Character.toLowerCase(onMovePawns.get(startLoc)) == 'p') {
+                if (move[2] == 0 || move[2] == 5) {
+                    if (currentTurn == 'W')
+                        onMovePawns.put(endLoc, 'Q');
+                    else
+                        onMovePawns.put(endLoc, 'q');
+                    moveInfo[0] = 'T';
+                } else
+                    onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
+            } else
                 onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
+            onMovePawns.remove(startLoc);  // remove the old position for on move side
+        } catch (NullPointerException e){
+            System.out.println(e.getMessage());
         }
-        else
-            onMovePawns.put(endLoc, onMovePawns.get(startLoc));  // add the new position for on move side
-        onMovePawns.remove(startLoc);  // remove the old position for on move side
+        return moveInfo;  // return move info
+    }
 
-        return win;  // return win status
+    private void undoMove(HashMap<String, Character> wPieces, HashMap<String, Character> bPieces, int[] move, char[] moveInfo){
+        HashMap<String, Character> onMovePawns;
+        HashMap<String, Character> waitingPawns;
+
+        if(currentTurn == 'W') {  // figure out who is on move and who is waiting
+            onMovePawns = wPieces;
+            waitingPawns = bPieces;
+        }
+        else {
+            onMovePawns = bPieces;
+            waitingPawns = wPieces;
+        }
+
+        String startLoc = move[0] + "" + move[1];
+        String endLoc = move[2] + "" + move[3];
+
+        char movedPiece = onMovePawns.get(endLoc);
+        onMovePawns.remove(endLoc);
+        if(moveInfo[1] != Character.MIN_VALUE)
+            waitingPawns.put(endLoc, moveInfo[1]);
+
+        if(moveInfo[0] == 'T')
+            onMovePawns.put(startLoc, currentTurn == 'W' ? 'P' : 'p');
+        else
+            onMovePawns.put(startLoc, movedPiece);
     }
 
     private int[] decodeMove(String toDecode){

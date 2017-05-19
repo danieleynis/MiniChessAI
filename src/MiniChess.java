@@ -84,15 +84,6 @@ public class MiniChess {
                 }
             }
         }
-/*
-        findMove();
-        System.out.println(curTurn);
-        System.out.println(Arrays.toString(moveToMake));
-        char[] moveinfo = executeMove(whitePieces, blackPieces, moveToMake);
-        printBoard();
-        undoMove(whitePieces, blackPieces, moveToMake, moveinfo);
-        printBoard();
-        */
     }
 
     public void playOnServer(String offerID) {
@@ -187,7 +178,6 @@ public class MiniChess {
     private void findMove(){
         moveToMake = null;
         ArrayList<int[]> moves = generateMoves(whitePieces, blackPieces);  // get list of moves
-
         HashMap<String, Character> copyPiecesW = new HashMap<>(whitePieces);  // create copy of white and black pawn hash sets
         HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
 
@@ -198,7 +188,7 @@ public class MiniChess {
             int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, -(Integer.MAX_VALUE), Integer.MAX_VALUE);
             currentTurn = (currentTurn == 'W' ? 'B' : 'W');
             undoMove(copyPiecesW, copyPiecesB, move, moveInfo);
-            if(val <= minVal){
+            if(val < minVal){
                 moveToMake = move;
                 minVal = val;
             }
@@ -216,6 +206,7 @@ public class MiniChess {
             return -10000000;
         }
 
+        Collections.shuffle(moves);
         int bestValue = Integer.MIN_VALUE;
         int val;
         for(int[] move : moves){

@@ -25,6 +25,8 @@ public class MiniChess {
     private static final int cols = 5;
     private static final int rows = 6;
     private int[] moveToMake = null;
+    private static final int drawDepth = 40;
+    private static final long timeLimit = 5000000000L;
     private HashMap<String, Character> whitePieces = new HashMap<>();
     private HashMap<String, Character> blackPieces = new HashMap<>();
     private static final HashMap<Character, Integer> pieceValues = new HashMap<>();
@@ -187,16 +189,26 @@ public class MiniChess {
         HashMap<String, Character> copyPiecesW = new HashMap<>(whitePieces);  // create copy of white and black pawn hash sets
         HashMap<String, Character> copyPiecesB = new HashMap<>(blackPieces);  // create copy of white and black pawn hash sets
         Collections.shuffle(moves);
-        int minVal = Integer.MAX_VALUE;
-        for(int[] move : moves){
-            char[] moveInfo = executeMove(copyPiecesW, copyPiecesB, move);
-            currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, -(Integer.MAX_VALUE), Integer.MAX_VALUE);
-            currentTurn = (currentTurn == 'W' ? 'B' : 'W');
-            undoMove(copyPiecesW, copyPiecesB, move, moveInfo);
-            if(val < minVal){
-                moveToMake = move;
-                minVal = val;
+        int depth = 1;
+        long startTime = System.nanoTime();
+        while(depth <= drawDepth) {
+            int minVal = Integer.MAX_VALUE;
+            for (int[] move : moves) {
+                char[] moveInfo = executeMove(copyPiecesW, copyPiecesB, move);
+                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                int val = negamaxSearch(copyPiecesW, copyPiecesB, depthLimit, -(Integer.MAX_VALUE), Integer.MAX_VALUE);
+                currentTurn = (currentTurn == 'W' ? 'B' : 'W');
+                undoMove(copyPiecesW, copyPiecesB, move, moveInfo);
+                if (val < minVal) {
+                    moveToMake = move;
+                    minVal = val;
+                }
+            }
+            depth++;
+            long endTime = System.nanoTime();
+            if(endTime - startTime >= timeLimit){
+                System.out.println("Depth: " + depth);
+                return;
             }
         }
     }

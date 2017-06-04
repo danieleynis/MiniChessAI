@@ -88,13 +88,17 @@ public class MiniChess {
         }
     }
 
-    public void playOnServer(String offerID) {
+    public void playOnServer(int offerOrAccept, String offerID, char color) {
         try {
-            if(offerID == null)
+            if((offerID == null) || (offerOrAccept != 0 && offerOrAccept != 1) || (color != 'B' && color != 'W' && color != '?'))
                 return;
             printBoard();
             Client imcs = new Client("imcs.svcs.cs.pdx.edu", "3589", "slowclap", "slowclap");
-            char myColor = imcs.accept(offerID, '?');
+            char myColor = '\0';
+            if(offerOrAccept == 0)
+                myColor = imcs.accept(offerID, color);
+            else if (offerOrAccept == 1)
+                myColor = imcs.offer(color);
             if(myColor == 'W'){
                 currentTurn = 'W';
                 findMove();
